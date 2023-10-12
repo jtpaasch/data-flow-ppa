@@ -1,5 +1,5 @@
 cabal-version:   3.0
-name:            x01
+name:            x02
 version:         0.1.0.0
 license:         NONE
 build-type:      Simple
@@ -12,13 +12,13 @@ common warnings
 library
     import:           warnings
     exposed-modules:
+        Pretty,
         Ast,
-        Equations,
+        Utils,
         Examples,
-        Pretty
+        Properties
     build-depends:
-        base ^>=4.18.0.0,
-        containers,
-        s-cargot
+        base,
+        containers
     hs-source-dirs:   src
     default-language: Haskell2010

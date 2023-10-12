@@ -1,6 +1,6 @@
-# Data flow analysis - 01
+# Data flow analysis - 02
 
-A naive implementation of the reaching definition analysis in chapter 1 of Nielson, Nielson, and Hankin, _Principles of Program Analysis_.
+A naive implementation of the available expression analysis in chapter 2 of Nielson, Nielson, and Hankin, _Principles of Program Analysis_.
 
 
 ## Setup
@@ -15,7 +15,7 @@ Download the latest haskell docker image:
 
 Start it up, mounting the repo:
 
-    cd /path/to/local/repo/01
+    cd /path/to/local/repo/02
     docker run --rm -ti -v $(pwd):/external -w /external haskell:latest bash
 
 Update cabal's package list:

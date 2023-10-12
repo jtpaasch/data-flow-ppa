@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+
 module Equations where
 
 import qualified Data.Map as Map
@@ -17,7 +19,11 @@ type Var = Ast.Var
 data DefLabel =
     Label Ast.Label -- ^ A particular program label.
   | Unknown -- ^ We don't know the program label in question.
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord)
+
+instance Show DefLabel where
+  show (Label l) = show l
+  show Unknown = "?"
 
 -- Convert a label from the AST to a 'DefLabel'.
 toDefLabel :: Ast.Label -> DefLabel
