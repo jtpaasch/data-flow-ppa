@@ -1,12 +1,19 @@
 module Ast where
 
+import Data.List (intercalate)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import qualified Pretty as Pretty
 
 type Map = Map.Map
 type Set = Set.Set
 
+
+-- * For printing
+
+showSet :: Show a => [a] -> String
+showSet xs =
+  let strings = map show xs
+  in "{" ++ (intercalate "," strings) ++ "}"
 
 
 -- * Basic types
@@ -36,7 +43,7 @@ instance Show Label where
 data VarSet = VarSet (Set Var) deriving (Eq, Ord)
 
 instance Show VarSet where
-  show (VarSet xs) = Pretty.showSet $ Set.toList xs
+  show (VarSet xs) = showSet $ Set.toList xs
 
 varSetToList :: VarSet -> [Var]
 varSetToList (VarSet xs) = Set.toList xs
@@ -47,6 +54,12 @@ emptyVarSet = VarSet Set.empty
 mkVarSet :: [Var] -> VarSet
 mkVarSet xs = VarSet $ Set.fromList xs
 
+memberOfVarSet :: VarSet -> Var -> Bool
+memberOfVarSet (VarSet vars) var = Set.member var vars
+
+notMemberOfVarSet :: VarSet -> Var -> Bool
+notMemberOfVarSet (VarSet vars) var = Set.notMember var vars
+
 addToVarSet :: VarSet -> Var -> VarSet
 addToVarSet (VarSet vars) v = VarSet (Set.insert v vars)
 
@@ -55,7 +68,7 @@ addToVarSet (VarSet vars) v = VarSet (Set.insert v vars)
 data LabelSet = LabelSet (Set Label) deriving (Eq, Ord)
 
 instance Show LabelSet where
-  show (LabelSet xs) = Pretty.showSet $ Set.toList xs
+  show (LabelSet xs) = showSet $ Set.toList xs
 
 labelSetToList :: LabelSet -> [Label]
 labelSetToList (LabelSet xs) = Set.toList xs

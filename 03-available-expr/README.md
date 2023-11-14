@@ -1,6 +1,6 @@
-# Data flow analysis - 02
+# Data flow analysis - 03
 
-A naive implementation of the available expression analysis in chapter 2 of Nielson, Nielson, and Hankin, _Principles of Program Analysis_.
+A more generalized implementation of the available expression analysis in chapter 2 of Nielson, Nielson, and Hankin, _Principles of Program Analysis_.
 
 
 ## Setup
@@ -15,7 +15,7 @@ Download the latest haskell docker image:
 
 Start it up, mounting the repo:
 
-    cd /path/to/local/repo/02
+    cd /path/to/local/repo/03-available-expr
     docker run --rm -ti -v $(pwd):/external -w /external haskell:latest bash
 
 Update cabal's package list:
@@ -41,12 +41,12 @@ Run the REPL:
 
 Look at the example programs:
 
-    ghci> Examples.factorial
-    ghci> Examples.power
+    ghci> Examples.prog1
+    ghci> Examples.prog2
 
-Run the round robin algorithm on, say, the factorial example:
+Run the analysis on, say, the prog2 example:
 
-    ghci> analysis = Equations.roundRobin Examples.factorial
+    ghci> analysis = Runner.analyze Examples.prog2
     ghci> printableVersion = Pretty.print analysis
     ghci> putStr printableVersion
 

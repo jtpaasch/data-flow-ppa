@@ -75,51 +75,42 @@ powerBad =
       )
     )
 
--- From p. 39 of Nielson, Nielson, and Hankin.
+-- From p. 43 of Nielson, Nielson, and Hankin.
 prog1 :: Ast.Stmt
 prog1 =
   Ast.StmtSeq
     (Ast.StmtAssign
       (Ast.Label 1)
       (Ast.Var "x")
-      (Ast.AexpPlus
-        (Ast.AexpVar (Ast.Var "a"))
-        (Ast.AexpVar (Ast.Var "b"))
-      )
+      (Ast.AexpNumb (Ast.Numb 5))
     )
     (Ast.StmtSeq
       (Ast.StmtAssign
         (Ast.Label 2)
         (Ast.Var "y")
-        (Ast.AexpMult
-          (Ast.AexpVar (Ast.Var "a"))
-          (Ast.AexpVar (Ast.Var "b"))
-        )
+        (Ast.AexpNumb (Ast.Numb 1))
       )
       (Ast.StmtWhile
         (Ast.Label 3)
         (Ast.BexpLtA
-          (Ast.AexpPlus
-            (Ast.AexpVar (Ast.Var "a"))
-            (Ast.AexpVar (Ast.Var "b"))
-          )
-          (Ast.AexpVar (Ast.Var "y"))
+          (Ast.AexpNumb (Ast.Numb 1))
+          (Ast.AexpVar (Ast.Var "x"))
         )
         (Ast.StmtSeq
           (Ast.StmtAssign
             (Ast.Label 4)
-            (Ast.Var "a")
-            (Ast.AexpPlus
-              (Ast.AexpVar (Ast.Var "a"))
-              (Ast.AexpNumb (Ast.Numb 1))
+            (Ast.Var "y")
+            (Ast.AexpMult
+              (Ast.AexpVar (Ast.Var "x"))
+              (Ast.AexpVar (Ast.Var "y"))
             )
           )
           (Ast.StmtAssign
             (Ast.Label 5)
             (Ast.Var "x")
-            (Ast.AexpPlus
-              (Ast.AexpVar (Ast.Var "a"))
-              (Ast.AexpVar (Ast.Var "b"))
+            (Ast.AexpMinus
+              (Ast.AexpVar (Ast.Var "x"))
+              (Ast.AexpNumb (Ast.Numb 1))
             )
           )
         )

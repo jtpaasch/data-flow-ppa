@@ -1,10 +1,18 @@
 module Utils where
 
+import Data.List (intercalate)
 import qualified Data.Set as Set
 import qualified Ast as Ast
-import qualified Pretty as Pretty
 
 type Set = Set.Set
+
+
+-- * Printing
+
+showSet :: Show a => [a] -> String
+showSet xs =
+  let strings = map show xs
+  in "{" ++ (intercalate "," strings) ++ "}"
 
 
 -- * Free vars
@@ -97,7 +105,7 @@ instance Show Block where
 data BlockSet = BlockSet (Set Block) deriving (Eq, Ord)
 
 instance Show BlockSet where
-  show (BlockSet xs) = Pretty.showSet $ Set.toList xs
+  show (BlockSet xs) = showSet $ Set.toList xs
 
 blockSetToList :: BlockSet -> [Block]
 blockSetToList (BlockSet xs) = Set.toList xs
@@ -150,6 +158,117 @@ labelsOf stmt =
   in Ast.mkLabelSet labels
 
 
+-- * The arithmetic expressions that occur in a program
+
+data AexpSet = AexpSet (Set Ast.Aexp) deriving (Eq, Ord)
+
+instance Show AexpSet where
+  show (AexpSet xs) = showSet $ Set.toList xs
+
+aexpSetToList :: AexpSet -> [Ast.Aexp]
+aexpSetToList (AexpSet xs) = Set.toList xs
+
+emptyAexpSet :: AexpSet
+emptyAexpSet = AexpSet Set.empty
+
+mkAexpSet :: [Ast.Aexp] -> AexpSet
+mkAexpSet aexps = AexpSet $ Set.fromList aexps
+
+addToAexpSet :: AexpSet -> Ast.Aexp -> AexpSet
+addToAexpSet (AexpSet aexps) aexp = AexpSet (Set.insert aexp aexps)
+
+unionAexpSets :: [AexpSet] -> AexpSet
+unionAexpSets aexpsets =
+  let union (AexpSet aexps1) (AexpSet aexps2) =
+        AexpSet (Set.union aexps1 aexps2)
+  in foldl union emptyAexpSet aexpsets
+
+intersectionAexpSets :: [AexpSet] -> AexpSet
+intersectionAexpSets aexpsets =
+  let intersection (AexpSet aexps1) (AexpSet aexps2) =
+        AexpSet (Set.intersection aexps1 aexps2)
+      headOf xs = case xs of
+        [] -> emptyAexpSet
+        x : _ -> x
+  in Prelude.foldl intersection (headOf aexpsets) aexpsets
+
+differenceAexpSets :: AexpSet -> AexpSet -> AexpSet
+differenceAexpSets (AexpSet aexpset1) (AexpSet aexpset2) =
+  AexpSet (Set.difference aexpset1 aexpset2)
+
+filterAexpSet :: (Ast.Aexp -> Bool) -> AexpSet -> AexpSet
+filterAexpSet f (AexpSet xs) = AexpSet (Set.filter f xs)
+
+aexpsOfAexp :: AexpSet -> Ast.Aexp -> AexpSet
+aexpsOfAexp aexps e =
+  case e of
+    Ast.AexpVar _ -> unionAexpSets [aexps, mkAexpSet [e]]
+    Ast.AexpNumb _ -> unionAexpSets [aexps, mkAexpSet [e]]
+    Ast.AexpPlus e1 e2 ->
+      let aexps1 = aexpsOfAexp aexps e1
+          aexps2 = aexpsOfAexp aexps e2
+      in unionAexpSets [aexps, aexps1, aexps2]
+    Ast.AexpMult e1 e2 ->
+      let aexps1 = aexpsOfAexp aexps e1
+          aexps2 = aexpsOfAexp aexps e2
+      in unionAexpSets [aexps, aexps1, aexps2]
+    Ast.AexpMinus e1 e2 ->
+      let aexps1 = aexpsOfAexp aexps e1
+          aexps2 = aexpsOfAexp aexps e2
+      in unionAexpSets [aexps, aexps1, aexps2]
+
+aexpsOfBexp :: AexpSet -> Ast.Bexp -> AexpSet
+aexpsOfBexp aexps b =
+  case b of
+    Ast.BexpTrue -> aexps
+    Ast.BexpFalse -> aexps
+    Ast.BexpNot b2 ->
+      let aexps1 = aexpsOfBexp aexps b2
+      in unionAexpSets [aexps, aexps1]
+    Ast.BexpEqA e1 e2 ->
+      let aexps1 = aexpsOfAexp aexps e1
+          aexps2 = aexpsOfAexp aexps e2
+      in unionAexpSets [aexps, aexps1, aexps2]
+    Ast.BexpLtA e1 e2 ->
+      let aexps1 = aexpsOfAexp aexps e1
+          aexps2 = aexpsOfAexp aexps e2
+      in unionAexpSets [aexps, aexps1, aexps2]
+
+aexpsOfStmt :: AexpSet -> Ast.Stmt -> AexpSet
+aexpsOfStmt aexps stmt =
+  case stmt of
+    Ast.StmtSkip _ -> aexps
+    Ast.StmtAssign _ _ e ->
+      let aexps1 = aexpsOfAexp aexps e
+      in unionAexpSets [aexps, mkAexpSet [e], aexps1]
+    Ast.StmtIf _ bexp stmt1 stmt2 ->
+      let aexps1 = aexpsOfStmt aexps stmt1
+          aexps2 = aexpsOfStmt aexps stmt2
+          aexps3 = aexpsOfBexp aexps bexp
+      in unionAexpSets [aexps, aexps1, aexps2, aexps3]
+    Ast.StmtWhile _ bexp body ->
+      let aexps1 = aexpsOfStmt aexps body
+          aexps2 = aexpsOfBexp aexps bexp
+      in unionAexpSets [aexps, aexps1, aexps2]
+    Ast.StmtSeq stmt1 stmt2 ->
+      let aexps1 = aexpsOfStmt aexps stmt1
+          aexps2 = aexpsOfStmt aexps stmt2
+      in unionAexpSets [aexps, aexps1, aexps2]
+
+aexpsOf :: Ast.Stmt -> AexpSet
+aexpsOf stmt = aexpsOfStmt emptyAexpSet stmt
+
+removeTrivialAexps :: AexpSet -> AexpSet
+removeTrivialAexps aexps =
+  let check aexp =
+        case aexp of
+          Ast.AexpPlus _ _ -> True
+          Ast.AexpMult _ _ -> True
+          Ast.AexpMinus _ _ -> True
+          _ -> False
+  in filterAexpSet check aexps
+
+
 -- * "Flows" (i.e., program flow from one label to another)
 
 data Flow = Flow (Ast.Label, Ast.Label) deriving (Eq, Ord)
@@ -163,7 +282,7 @@ mkFlow l1 l2 = Flow (l1, l2)
 data FlowSet = FlowSet (Set Flow) deriving (Eq, Ord)
 
 instance Show FlowSet where
-  show (FlowSet xs) = Pretty.showSet $ Set.toList xs
+  show (FlowSet xs) = showSet $ Set.toList xs
 
 flowSetToList :: FlowSet -> [Flow]
 flowSetToList (FlowSet xs) = Set.toList xs

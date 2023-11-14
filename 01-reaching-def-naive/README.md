@@ -15,7 +15,7 @@ Download the latest haskell docker image:
 
 Start it up, mounting the repo:
 
-    cd /path/to/local/repo/01
+    cd /path/to/local/repo/01-reaching-def-naive
     docker run --rm -ti -v $(pwd):/external -w /external haskell:latest bash
 
 Update cabal's package list:
