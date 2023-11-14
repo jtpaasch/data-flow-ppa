@@ -43,7 +43,7 @@ Look at the example program:
 
     ghci> Examples.prog1
 
-Run the analysis on, say, the prog2 example:
+Run the analysis on the program:
 
     ghci> analysis = Runner.analyze Examples.prog1
     ghci> printableVersion = Pretty.print analysis
